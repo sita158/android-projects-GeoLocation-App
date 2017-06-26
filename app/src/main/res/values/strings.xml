@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">GeoLocationApp</string>
+    <string name="service_not_available">Servicio de geolocalización no disponible</string>
+    <string name="invalid_lat_long_used">Coordenadas inválidas</string>
+    <string name="no_address_found">Dirección no encontrada</string>
+    <string name="address_found">Dirección recuperada exitosamente</string>
+    <string name="no_geocoder_available">No existe un objeto decodificador de ubicaciones</string>
+</resources>
