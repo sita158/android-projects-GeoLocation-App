@@ -1,0 +1,103 @@
+//For build.gradle when adding the WCD Service
+compile 'com.android.volley:volley:1.0.0'
+
+//For AndroidManifest.xml when adding the WCD Service
+<uses-permission android:name="android.permission.INTERNET"/>
+
+//For activity_mail.xml when adding the WCD Service
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="The weather at that location:"
+    android:textSize="15dp"
+    android:textAlignment="center"
+    android:layout_marginTop="20dp" />
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="-- Weather --"
+    android:textSize="15dp"
+    android:textAlignment="center"
+    android:layout_marginTop="20dp"
+    android:id="@+id/weather"/>
+
+
+//For MainActivity.java when adding the WCD Service
+String url = "<WeatherCompanyDataServiceURL>/api/weather/v1/geocode/" + mLastLocation.getLatitude() + "/" + mLastLocation.getLongitude() + "/observations.json";
+
+StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+
+    @Override
+    public void onResponse(String response) {
+        Log.d("App", "Response: " + response);
+
+        try{
+            JSONObject weatherObject = new JSONObject(response);
+            JSONObject observation = weatherObject.getJSONObject("observation");
+
+            String currentWeather = observation.getString("wx_phrase") + ", " + observation.getString("temp") + "°F";
+
+            TextView weather = (TextView) findViewById(R.id.weather);
+            weather.setText(currentWeather);
+        } catch (JSONException e){
+            Log.d("App", e.toString());
+        }
+    }
+}, new Response.ErrorListener() {
+
+    @Override
+    public void onErrorResponse(VolleyError error) {
+        Log.d("App", "Error: " + error.getMessage());
+    }
+})
+
+{
+    @Override
+    public Map<String, String> getHeaders() throws AuthFailureError {
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("Content-Type", "application/json");
+        String creds = String.format("%s:%s","<username>","<password>");
+        String auth = "Basic " + Base64.encodeToString(creds.getBytes(), Base64.DEFAULT);
+        params.put("Authorization", auth);
+        return params;
+
+    }
+
+};
+
+RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+requestQueue.add(stringRequest);
+
+//For build.gradle when adding the T2S Service
+compile 'com.ibm.watson.developer_cloud:text-to-speech:3.7.2'
+compile 'com.ibm.watson.developer_cloud:android-sdk:0.2.3'
+
+//For activity_main.xml when adding the T2S Service
+<Button
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textAllCaps="false"
+    android:text="Read"
+    android:onClick="read"/>
+
+//For MainActivity.java when adding the T2S Service
+public void read(View view){
+    final TextToSpeech service = new TextToSpeech();
+    service.setUsernameAndPassword("<username>", "<password>");
+
+    final String frase = mAddressOutput;
+    Thread thread = new Thread(new Runnable(){
+
+        public void run() {
+            try {
+                StreamPlayer streamPlayer = new StreamPlayer();
+
+                streamPlayer.playStream(service.synthesize(frase, Voice.ES_SOFIA, AudioFormat.WAV).execute());
+            }
+           catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    });
+    thread.start();
+}
